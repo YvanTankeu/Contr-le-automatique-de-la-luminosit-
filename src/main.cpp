@@ -27,7 +27,7 @@ const int ANALOG_PIN = A1; // Utilisation de la broche A1 pour lecture analogue
 
 // Variable de controle générales tel les délais, etc...
 
-const int MS_DELAI = 1000; // Nombre de milliseconde de délais
+const int MS_DELAI = 5000; // Nombre de milliseconde de délais
 
 int croisement(0), route(0);
 
@@ -39,8 +39,8 @@ void setup()
 
   Serial.begin(9600); // Activation du port série pour affichage dans le moniteur série
 
-  //wifiConnect(); //Branchement au réseau WIFI
-  //MQTTConnect(); //Branchement au broker MQTT
+  wifiConnect(); //Branchement au réseau WIFI
+  MQTTConnect(); //Branchement au broker MQTT
 
   pinMode(ANALOG_PIN, INPUT); // Pour une bonne lecture, la broche analogique doit être placé en mode entré explicitment
 
@@ -53,9 +53,12 @@ void setup()
 
 void loop()
 {
-  int valLumens;
+  float valLumens(0);
   valLumens = analogRead(ANALOG_PIN);      //connect grayscale sensor to Analog 1
-  Serial.println(valLumens, DEC); //print the value to serial
+  //Serial.println(valLumens, DEC); //print the value to serial
+
+  Serial.print("La valeur obtenue par la broche analogue est ");
+  Serial.println(valLumens);
 
     // activer les feux de routes si l'intensité est plus petite que 400
   if (valLumens  <=  300 )
@@ -80,13 +83,13 @@ void loop()
     ledBleueOff;
   }
   
-  appendPayload("Lumens", val); //Ajout de la donnée température au message MQTT
+  appendPayload("Lumens", valLumens); //Ajout de la donnée température au message MQTT
   sendPayload();                                  //Envoie du message via le protocole MQTT
 
-  appendPayload("Croisement Activer", croisement);
+  appendPayload("Feu de croisement Activé", croisement);
   sendPayload();
 
-  appendPayload("Route activer", route);
+  appendPayload("Feu de route activé", route);
   sendPayload();
 
   delay(MS_DELAI); // Délai de sorte a ce qu'on puisse lire les valeurs et ralentir le uC
