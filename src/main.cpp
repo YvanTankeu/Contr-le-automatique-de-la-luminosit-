@@ -4,6 +4,7 @@
   Date       : 26/11/2021
   Description: lecture d'intensité lumineuse et actionnage de lumière
   Version    : 0.0.1
+  bon à savoir     : J'ai réutilisé le code D'André afin d'y ajuster pour le cas écheant
 */
 
 #include <Arduino.h>
@@ -29,8 +30,20 @@ const int ANALOG_PIN = A1; // Utilisation de la broche A1 pour lecture analogue
 
 const int MS_DELAI = 5000; // Nombre de milliseconde de délais
 
-int croisement(0), route(0);
+int croisement(0), route(0), analogueValue(0);
 
+/*
+  Variables pour obtenir une valeur de tension a partir du résultat du convertisseur
+  analogique digitale CAD, de 0 à 1023 en 0 à 3.3V.  A ajuster selon la tension maximale
+  permise par le microncontrolleur et la resolution de la broche 8,10,12,...  bits
+*/
+
+const float PIN_BASE_MAX_VOLTAGE = 3.3;    // Tension de base maximale pour la broche analogue du uC utilisé
+const float MIN_VOLTAGE = 0;    // Tension de base minimal pour la broche analogue du uC utilisé
+const int PIN_ANALOG_MAX_VALUE = 1023; // Valeur maximale de la lecture de la broche analogue
+const int PIN_ANALOG_MIN_VALUE = 0; // Valeur minimale de la lecture de la broche analogue
+
+float pinVoltage = 0;                  // Variable pour la transformation de la lecture analogue a une tension
 
 // La fonction setup sert, entre autre chose, a configurer les broches du uC
 
@@ -54,12 +67,22 @@ void setup()
 void loop()
 {
   float valLumens(0);
-  valLumens = analogRead(ANALOG_PIN);      //connect grayscale sensor to Analog 1
-  //Serial.println(valLumens, DEC); //print the value to serial
+  analogueValue = analogRead(ANALOG_PIN); // lecture de la valeur de la broche A1
+
+  // En utilisant la fonction map(), on pourra mapper la valeur lue par la broche 
+  //analague d’une plage de 0 à 1023 à la plage de la tension de 0 à 3.3v, 
+  pinVoltage = map(analogueValue, PIN_ANALOG_MIN_VALUE, PIN_ANALOG_MAX_VALUE, 
+  MIN_VOLTAGE, PIN_BASE_MAX_VOLTAGE);
+
+  valLumens = pinVoltage;
 
   Serial.print("La valeur obtenue par la broche analogue est ");
-  Serial.println(valLumens);
+  Serial.println(analogueValue);
 
+  Serial.print("La tension obtenue due convertisseur CAD ");
+  Serial.println(pinVoltage);
+
+  // on utilisera la valeur lue la broche analogue comme donnée de decision
     // activer les feux de routes si l'intensité est plus petite que 400
   if (valLumens  <=  300 )
   {
